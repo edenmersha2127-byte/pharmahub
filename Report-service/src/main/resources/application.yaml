@@ -1,0 +1,66 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: report-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/report_db
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+# Downstream services the report service talks to.
+auth-service:
+  url: ${AUTH_SERVICE_URL:http://localhost:8081}
+
+notification-service:
+  url: ${NOTIFICATION_SERVICE_URL:http://localhost:8086}
+
+rest-client:
+  timeout-seconds: 10
+
+# Report / moderation policy knobs. All admin-facing behaviour is tunable here.
+report:
+  # A customer may not file another report against the same pharmacy within
+  # this window (anti-spam / anti-abuse cooldown).
+  cooldown-hours: ${REPORT_COOLDOWN_HOURS:24}
+  # When a pharmacy accumulates this many unresolved reports within the
+  # look-back window, the system auto-flags it and notifies the admins.
+  flag-threshold: ${REPORT_FLAG_THRESHOLD:3}
+  flag-window-days: ${REPORT_FLAG_WINDOW_DAYS:7}
+  # Default temporary-suspension length when an admin suspends a pharmacy
+  # without specifying a duration. Admin-adjustable per action.
+  default-suspension-days: ${REPORT_DEFAULT_SUSPENSION_DAYS:3}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    com.medicinelocator.reportservice: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{requestId}] %logger{36} - %msg%n"

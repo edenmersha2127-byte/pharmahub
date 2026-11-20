@@ -1,0 +1,177 @@
+# ===================================================================
+# PRODUCTION READY (Environment Variables with Fallbacks)
+# ===================================================================
+#server:
+#  port: 8084
+#
+#spring:
+#  application:
+#    name: prescription-service
+#
+#  datasource:
+#    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/medicine_locator_db}
+#    username: ${SPRING_DATASOURCE_USERNAME:medicine_user}
+#    password: ${SPRING_DATASOURCE_PASSWORD:medicine_pass}
+#    driver-class-name: org.postgresql.Driver
+#    hikari:
+#      maximum-pool-size: 10
+#      minimum-idle: 5
+#      connection-timeout: 30000
+#      idle-timeout: 600000
+#      max-lifetime: 1800000
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: validate
+#    show-sql: false
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.PostgreSQLDialect
+#        format_sql: true
+#
+#  servlet:
+#    multipart:
+#      enabled: true
+#      max-file-size: ${MAX_FILE_SIZE:10MB}
+#      max-request-size: ${MAX_REQUEST_SIZE:11MB}
+#
+#prescription:
+#  storage:
+#    upload-dir: ${UPLOAD_DIR:./uploads/prescriptions}
+#  allowed-content-types:
+#    - image/jpeg
+#    - image/png
+#    - image/jpg
+#    - application/pdf
+#  max-file-size-bytes: ${MAX_FILE_SIZE_BYTES:10485760}
+#
+#ocr:
+#  provider: ${OCR_PROVIDER:google_vision}
+#  google:
+#    api-key: ${GOOGLE_VISION_API_KEY:mock-key-replace-me}
+#    endpoint: ${GOOGLE_VISION_ENDPOINT:https://vision.googleapis.com/v1/images:annotate}
+#  mock:
+#    enabled: ${OCR_MOCK_ENABLED:false}
+#
+#search-service:
+#  url: ${SEARCH_SERVICE_URL:http://search-service:8083}
+#  timeout-seconds: ${SEARCH_SERVICE_TIMEOUT_SECONDS:10}
+#  prescription-search-path: /api/v1/search/prescription
+#
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health,info,metrics
+#  endpoint:
+#    health:
+#      show-details: when-authorized
+#
+#logging:
+#  level:
+#    com.medicinelocator.prescription: DEBUG
+#    org.hibernate.SQL: WARN
+#  pattern:
+#    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{requestId}] [%X{prescriptionId}] [%X{customerId}] %logger{36} - %msg%n"
+
+
+# ===================================================================
+# Prescription Service — local configuration
+# ===================================================================
+server:
+  port: 8084
+
+spring:
+  application:
+    name: prescription-service
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/prescription_db}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: update   # was validate; update creates tables on a fresh DB (matches other services)
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: ${MAX_FILE_SIZE:10MB}
+      max-request-size: ${MAX_REQUEST_SIZE:11MB}
+
+prescription:
+  storage:
+    upload-dir: ${UPLOAD_DIR:./uploads/prescriptions}
+  allowed-content-types:
+    - image/jpeg
+    - image/png
+    - image/jpg
+    - application/pdf
+  max-file-size-bytes: ${MAX_FILE_SIZE_BYTES:10485760}
+
+ocr:
+  # gemini_vision | google_vision | mock
+  provider: ${OCR_PROVIDER:gemini_vision}
+
+  google:
+    api-key: ${GOOGLE_VISION_API_KEY:mock-key-replace-me}
+    endpoint: ${GOOGLE_VISION_ENDPOINT:https://vision.googleapis.com/v1/images:annotate}
+
+  gemini:
+    # Put a REAL AI Studio key (format AIza...) in the GEMINI_API_KEY env var.
+    api-key: ${GEMINI_API_KEY}
+    # Must be a model served on v1beta generateContent (NOT plain gemini-1.5-flash).
+    model: ${GEMINI_MODEL}
+    endpoint: ${GEMINI_ENDPOINT}
+    timeout-seconds: ${GEMINI_TIMEOUT_SECONDS}
+    max-retries: ${GEMINI_MAX_RETRIES}
+
+  mock:
+    enabled: ${OCR_MOCK_ENABLED:false}
+
+medicine-matching:
+  fuzzy-similarity-threshold: ${FUZZY_SIMILARITY_THRESHOLD:0.75}
+  max-candidates-per-medicine: ${MAX_CANDIDATES_PER_MEDICINE:5}
+
+search-service:
+  # localhost for running locally in IntelliJ (was http://search-service:8083 — a Docker-only hostname)
+  url: ${SEARCH_SERVICE_URL:http://localhost:8083}
+  timeout-seconds: ${SEARCH_SERVICE_TIMEOUT_SECONDS:10}
+  prescription-search-path: /api/search/prescription
+
+notification-service:
+  url: ${NOTIFICATION_SERVICE_URL:http://localhost:8086}
+
+# Inventory Service — used by the pharmacy dispense-scan flow to resolve
+# extracted medicine names against the pharmacy's own catalogue.
+inventory-service:
+  url: ${INVENTORY_SERVICE_URL:http://localhost:8082}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    com.medicinelocator.prescription: DEBUG
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{requestId}] [%X{prescriptionId}] [%X{customerId}] %logger{36} - %msg%n"

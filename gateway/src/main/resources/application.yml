@@ -1,0 +1,463 @@
+##server:
+##  port: 8080
+##
+##spring:
+##  application:
+##    name: api-gateway
+##
+##  data:
+##    redis:
+##      host: ${SPRING_REDIS_HOST:localhost}
+##      port: ${SPRING_REDIS_PORT:6379}
+##      password: ${SPRING_REDIS_PASSWORD:}
+##      timeout: 2000ms
+##      lettuce:
+##        pool:
+##          max-active: 10
+##          max-idle: 5
+##          min-idle: 2
+##
+##  cloud:
+##    gateway:
+##      globalcors:
+##        cors-configurations:
+##          '[/**]':
+##            allowedOriginPatterns:
+##              - "http://localhost:3000"
+##              - "http://localhost:5173"
+##              - "http://localhost:5174"
+##            allowedMethods:
+##              - GET
+##              - POST
+##              - PUT
+##              - DELETE
+##              - PATCH
+##              - OPTIONS
+##            allowedHeaders: "*"
+##            allowCredentials: true
+##            maxAge: 3600
+##
+##      # Redis Rate Limiter disabled until Redis is running locally
+##      # default-filters:
+##      #   - name: RequestRateLimiter
+##      #     args:
+##      #       redis-rate-limiter.replenishRate: 20
+##      #       redis-rate-limiter.burstCapacity: 40
+##      #       redis-rate-limiter.requestedTokens: 1
+##
+##      routes:
+##        - id: auth-service
+##          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+##          predicates:
+##            - Path=/api/auth/**
+##          filters:
+##            - name: CircuitBreaker
+##              args:
+##                name: auth-service
+##                fallbackUri: forward:/fallback/auth
+##
+##        - id: inventory-service
+##          uri: ${INVENTORY_SERVICE_URL:http://localhost:8082}
+##          predicates:
+##            - Path=/api/inventory/**
+##          filters:
+##            - JwtAuth
+##
+##        - id: search-service
+##          uri: ${SEARCH_SERVICE_URL:http://localhost:8083}
+##          predicates:
+##            - Path=/api/search/**
+##          filters:
+##            - JwtAuth
+##
+##        - id: prescription-service
+##          uri: ${PRESCRIPTION_SERVICE_URL:http://localhost:8084}
+##          predicates:
+##            - Path=/api/prescriptions/**
+##          filters:
+##            - JwtAuth
+##
+##        - id: reservation-service
+##          uri: ${RESERVATION_SERVICE_URL:http://localhost:8085}
+##          predicates:
+##            - Path=/api/reservations/**
+##          filters:
+##            - JwtAuth
+##
+##jwt:
+##  secret: ${JWT_SECRET:dGhpcy1pcy1hLXNlY3VyZS0yNTYtYml0LWtleS1mb3ItbG9jYWwtdGVzdGluZy0xMjM0NTY3ODk=}
+##
+##rate-limit:
+##  default-replenish-rate: 20
+##  default-burst-capacity: 40
+##
+##management:
+##  endpoints:
+##    web:
+##      exposure:
+##        include: health,info,metrics
+##  endpoint:
+##    health:
+##      show-details: when-authorized
+##  health:
+##    redis:
+##      enabled: false
+##    reactive:
+##      redis:
+##        enabled: false
+##
+##logging:
+##  level:
+##    com.medicinelocator.gateway: DEBUG
+##    org.springframework.cloud.gateway: INFO
+##  pattern:
+##    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{requestId}] %logger{36} - %msg%n"
+#
+#server:
+#  port: 8080
+#
+#spring:
+#  application:
+#    name: api-gateway
+#
+#  data:
+#    redis:
+#      host: ${SPRING_REDIS_HOST:localhost}
+#      port: ${SPRING_REDIS_PORT:6379}
+#      password: ${SPRING_REDIS_PASSWORD:}
+#      timeout: 2000ms
+#      lettuce:
+#        pool:
+#          max-active: 10
+#          max-idle: 5
+#          min-idle: 2
+#
+#  cloud:
+#    gateway:
+#      globalcors:
+#        cors-configurations:
+#          '[/**]':
+#            allowedOriginPatterns:
+#              - "*"
+##              - "http://localhost:5174"
+#            allowedMethods:
+#              - GET
+#              - POST
+#              - PUT
+#              - DELETE
+#              - PATCH
+#              - OPTIONS
+#            allowedHeaders: "*"
+#            allowCredentials: true
+#            maxAge: 3600
+#
+#      # Redis Rate Limiter is temporarily disabled until you have a Redis server running
+#      # default-filters:
+#      #   - name: RequestRateLimiter
+#      #     args:
+#      #       redis-rate-limiter.replenishRate: 20
+#      #       redis-rate-limiter.burstCapacity: 40
+#      #       redis-rate-limiter.requestedTokens: 1
+#
+#      routes:
+#        - id: auth-service
+#          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+#          predicates:
+#            - Path=/api/auth/**
+#          # 👇 COMMENTED THIS OUT SO IT STOPS LOOKING FOR THE MISSING CIRCUIT BREAKER FACTORY
+#          # filters:
+#          #   - name: CircuitBreaker
+#          #     args:
+#          #       name: auth-service
+#          #       fallbackUri: forward:/fallback/auth
+#
+#        - id: inventory-service
+#          uri: ${INVENTORY_SERVICE_URL:http://localhost:8082}
+#          predicates:
+#            - Path=/api/inventory/**
+#          # filters:
+#          #   - JwtAuth
+#
+#        - id: search-service
+#          uri: ${SEARCH_SERVICE_URL:http://localhost:8083}
+#          predicates:
+#            - Path=/api/search/**
+##           filters:
+##             - JwtAuth
+#
+#        - id: prescription-service
+#          uri: ${PRESCRIPTION_SERVICE_URL:http://localhost:8084}
+#          predicates:
+#            - Path=/api/prescriptions/**
+#          # filters:
+#          #   - JwtAuth
+#
+#        - id: reservation-service
+#          uri: ${RESERVATION_SERVICE_URL:http://localhost:8085}
+#          predicates:
+#            - Path=/api/reservations/**
+#          # filters:
+#          #   - JwtAuth
+#
+#jwt:
+#  # Added a long 256-bit safe fallback string to prevent HMAC verification validation crashes locally
+#  secret: ${JWT_SECRET:dGhpcy1pcy1hLXNlY3VyZS0yNTYtYml0LWtleS1mb3ItbG9jYWwtdGVzdGluZy0xMjM0NTY3ODk=}
+#
+#rate-limit:
+#  default-replenish-rate: 20
+#  default-burst-capacity: 40
+#
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health,info,metrics
+#  endpoint:
+#    health:
+#      show-details: when-authorized
+#  health:
+#    redis:
+#      enabled: false
+#    reactive:
+#      redis:
+#        enabled: false
+#
+#logging:
+#  level:
+#    com.medicinelocator.gateway: DEBUG
+#    org.springframework.cloud.gateway: INFO
+#
+#  pattern:
+#    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{requestId}] %logger{36} - %msg%n"
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
+      password: ${SPRING_REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 5
+          min-idle: 2
+
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns:
+              - "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+
+      routes:
+
+        # AUTHENTICATED AUTH ENDPOINTS (must be listed before the public catch-all
+        # so the JwtAuth filter injects X-User-* headers and overrides any spoofed ones)
+        - id: auth-service-authenticated
+          uri: ${AUTH_SERVICE_URL}
+          predicates:
+            - Path=/api/auth/me,/api/auth/change-password,/api/auth/pharmacy/open-status
+          filters:
+            - JwtAuth
+
+        # PUBLIC AUTH ENDPOINTS
+        - id: auth-service-public
+          uri: ${AUTH_SERVICE_URL}
+          predicates:
+            - Path=/api/auth/**
+
+        # REPORT SERVICE — ADMIN MODERATION (must precede auth-service-admin so
+        # /api/admin/reports/** goes to the report service, not auth)
+        - id: report-service-admin
+          uri: ${REPORT_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/admin/reports/**
+          filters:
+            - JwtAuth
+
+        # REPORT SERVICE — ADMIN SUPPORT TICKETS (software-issue queue; must also
+        # precede auth-service-admin)
+        - id: report-service-admin-issues
+          uri: ${REPORT_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/admin/issues/**
+          filters:
+            - JwtAuth
+
+        # PAYMENT SERVICE — ADMIN billing/coupons (must precede auth-service-admin)
+        - id: payment-service-admin
+          uri: ${PAYMENT_SERVICE_URL:http://localhost:8088}
+          predicates:
+            - Path=/api/admin/subscriptions/**,/api/admin/payments/**,/api/admin/coupons/**
+          filters:
+            - JwtAuth
+
+        # ADMIN ENDPOINTS
+        - id: auth-service-admin
+          uri: ${AUTH_SERVICE_URL}
+          predicates:
+            - Path=/api/admin/**
+          filters:
+            - JwtAuth
+
+        # INVENTORY SERVICE
+        - id: inventory-service
+          uri: ${INVENTORY_SERVICE_URL}
+          predicates:
+            - Path=/api/inventory/**
+          filters:
+            - JwtAuth
+
+        # PHARMACY MEDICINES
+        - id: pharmacy-medicines-service
+          uri: ${INVENTORY_SERVICE_URL}
+          predicates:
+            - Path=/pharmacies/**
+          filters:
+            - JwtAuth
+
+        # MEDICINE SEARCH
+        - id: medicine-search-public
+          uri: ${INVENTORY_SERVICE_URL}
+          predicates:
+            - Path=/medicines/search
+          filters:
+            - JwtAuth
+
+        # SEARCH SERVICE
+        - id: search-service
+          uri: ${SEARCH_SERVICE_URL}
+          predicates:
+            - Path=/api/search/**
+          filters:
+            - JwtAuth
+
+        # PRESCRIPTION SERVICE
+        - id: prescription-service
+          uri: ${PRESCRIPTION_SERVICE_URL}
+          predicates:
+            - Path=/api/prescriptions/**
+          filters:
+            - JwtAuth
+
+        # HOSPITAL CONNECTIONS (verification directory — admin)
+        - id: hospital-connections-service
+          uri: ${PRESCRIPTION_SERVICE_URL}
+          predicates:
+            - Path=/api/hospital-connections/**
+          filters:
+            - JwtAuth
+
+        # NOTIFICATION SERVICE (in-app notifications for customers & pharmacies)
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL}
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - JwtAuth
+
+        # REPORT SERVICE — CUSTOMER reporting
+        - id: report-service-customer
+          uri: ${REPORT_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/reports/**
+          filters:
+            - JwtAuth
+
+        # REPORT SERVICE — SUPPORT TICKETS (customers AND pharmacies report
+        # software/experience issues to admin)
+        - id: report-service-issues
+          uri: ${REPORT_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/issues/**
+          filters:
+            - JwtAuth
+
+        # REPORT SERVICE — PHARMACY view/respond
+        - id: report-service-pharmacy
+          uri: ${REPORT_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/pharmacy/reports/**
+          filters:
+            - JwtAuth
+
+        # AUTH SERVICE — PHARMACY staff management (owner creates/edits employees)
+        - id: auth-service-pharmacy-staff
+          uri: ${AUTH_SERVICE_URL}
+          predicates:
+            - Path=/api/pharmacy/staff/**
+          filters:
+            - JwtAuth
+
+        # SALES SERVICE — POS, checkout, receipts, pharmacy customers
+        - id: sales-service
+          uri: ${SALES_SERVICE_URL:http://localhost:8089}
+          predicates:
+            - Path=/api/sales/**,/api/pos/**,/api/pharmacy-customers/**
+          filters:
+            - JwtAuth
+
+        # PAYMENT SERVICE — Chapa webhook (PUBLIC: no JwtAuth, Chapa has no token;
+        # the service verifies the payment with Chapa server-side before acting)
+        - id: payment-service-webhook
+          uri: ${PAYMENT_SERVICE_URL:http://localhost:8088}
+          predicates:
+            - Path=/api/payments/webhook
+
+        # PAYMENT SERVICE — PHARMACY subscriptions
+        - id: payment-service-subscriptions
+          uri: ${PAYMENT_SERVICE_URL:http://localhost:8088}
+          predicates:
+            - Path=/api/subscriptions/**
+          filters:
+            - JwtAuth
+
+jwt:
+  secret: ${JWT_SECRET}
+
+rate-limit:
+  default-replenish-rate: 20
+  default-burst-capacity: 40
+  # Per-IP cap enforced by RateLimitFilter (requests per minute). Raise for
+  # local dev (a single-page app + polling easily exceeds a low limit since all
+  # requests share the localhost IP). Lower it in production.
+  requests-per-minute: ${RATE_LIMIT_RPM:600}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+  endpoint:
+    health:
+      show-details: when-authorized
+
+  health:
+    redis:
+      enabled: false
+
+logging:
+  level:
+    com.medicinelocator.gateway: DEBUG
+    org.springframework.cloud.gateway: INFO
+
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{requestId}] %logger{36} - %msg%n"
