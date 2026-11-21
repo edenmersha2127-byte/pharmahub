@@ -295,7 +295,7 @@ spring:
         # REPORT SERVICE — ADMIN SUPPORT TICKETS (software-issue queue; must also
         # precede auth-service-admin)
         - id: report-service-admin-issues
-          uri: ${REPORT_SERVICE_URL:http://localhost:8087}
+          uri: ${REPORT_SERVICE_URL:http://localhost:8091}
           predicates:
             - Path=/api/admin/issues/**
           filters:

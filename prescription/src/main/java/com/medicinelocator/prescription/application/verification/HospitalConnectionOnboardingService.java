@@ -1,7 +1,9 @@
 package com.medicinelocator.prescription.application.verification;
 
 import com.medicinelocator.prescription.application.dto.request.CreateHospitalConnectionRequest;
+import com.medicinelocator.prescription.application.dto.request.UpdateHospitalConnectionRequest;
 import com.medicinelocator.prescription.application.service.HospitalConnectionRepository;
+import com.medicinelocator.prescription.domain.exception.InvalidPrescriptionException;
 import com.medicinelocator.prescription.domain.model.HospitalConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Admin onboarding of integrated hospitals: generates a unique hospital ID,
@@ -34,14 +37,22 @@ public class HospitalConnectionOnboardingService {
     }
 
     public HospitalConnection onboard(CreateHospitalConnectionRequest request) {
-        String hospitalId = generateUniqueHospitalId();
+        String hospitalId;
+        if (request.hospitalId() != null && !request.hospitalId().isBlank()) {
+            hospitalId = request.hospitalId().trim();
+            if (connectionRepository.existsByHospitalId(hospitalId)) {
+                throw new InvalidPrescriptionException("Hospital ID is already in use: " + hospitalId);
+            }
+        } else {
+            hospitalId = generateUniqueHospitalId();
+        }
 
         HospitalConnection connection = new HospitalConnection(
                 null,
-                request.name(),
-                request.email(),
+                request.name().trim(),
+                request.email().trim(),
                 hospitalId,
-                request.baseUrl(),
+                request.baseUrl().trim(),
                 request.apiKey(),
                 true
         );
@@ -52,6 +63,39 @@ public class HospitalConnectionOnboardingService {
         log.info("Onboarded hospital '{}' -> generated hospitalId={} (send to {} to configure on their side)",
                 saved.getName(), saved.getHospitalId(), saved.getEmail());
 
+        return saved;
+    }
+
+    /**
+     * Admin edit of an existing connection. The hospitalId may be changed as
+     * long as no other hospital uses it. A blank apiKey keeps the stored key
+     * and a null active flag keeps the current state.
+     */
+    public HospitalConnection update(UUID id, UpdateHospitalConnectionRequest request) {
+        HospitalConnection connection = connectionRepository.findById(id)
+                .orElseThrow(() -> new InvalidPrescriptionException("Hospital connection not found: " + id));
+
+        String hospitalId = request.hospitalId().trim();
+        if (!hospitalId.equals(connection.getHospitalId())
+                && connectionRepository.existsByHospitalId(hospitalId)) {
+            throw new InvalidPrescriptionException("Hospital ID is already in use: " + hospitalId);
+        }
+
+        String previousHospitalId = connection.getHospitalId();
+        connection.setName(request.name().trim());
+        connection.setEmail(request.email().trim());
+        connection.setHospitalId(hospitalId);
+        connection.setBaseUrl(request.baseUrl().trim());
+        if (request.apiKey() != null && !request.apiKey().isBlank()) {
+            connection.setApiKey(request.apiKey().trim());
+        }
+        if (request.active() != null) {
+            connection.setActive(request.active());
+        }
+
+        HospitalConnection saved = connectionRepository.save(connection);
+        log.info("Updated hospital '{}' (id={}) hospitalId {} -> {} active={}",
+                saved.getName(), saved.getId(), previousHospitalId, saved.getHospitalId(), saved.isActive());
         return saved;
     }
 

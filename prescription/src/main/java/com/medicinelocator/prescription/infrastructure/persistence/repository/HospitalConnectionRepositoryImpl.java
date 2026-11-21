@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class HospitalConnectionRepositoryImpl implements HospitalConnectionRepository {
@@ -29,6 +30,11 @@ public class HospitalConnectionRepositoryImpl implements HospitalConnectionRepos
         entity.setApiKey(connection.getApiKey());
         entity.setActive(connection.isActive());
         return toDomain(jpaRepository.save(entity));
+    }
+
+    @Override
+    public Optional<HospitalConnection> findById(UUID id) {
+        return jpaRepository.findById(id).map(this::toDomain);
     }
 
     @Override

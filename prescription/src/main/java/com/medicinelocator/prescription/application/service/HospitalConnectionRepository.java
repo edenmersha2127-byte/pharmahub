@@ -4,6 +4,7 @@ import com.medicinelocator.prescription.domain.model.HospitalConnection;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Port for the integrated-hospitals directory.
@@ -11,6 +12,8 @@ import java.util.Optional;
 public interface HospitalConnectionRepository {
 
     HospitalConnection save(HospitalConnection connection);
+
+    Optional<HospitalConnection> findById(UUID id);
 
     Optional<HospitalConnection> findByHospitalId(String hospitalId);
 
