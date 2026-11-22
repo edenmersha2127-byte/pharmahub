@@ -286,7 +286,7 @@ spring:
         # REPORT SERVICE — ADMIN MODERATION (must precede auth-service-admin so
         # /api/admin/reports/** goes to the report service, not auth)
         - id: report-service-admin
-          uri: ${REPORT_SERVICE_URL:http://localhost:8087}
+          uri: ${REPORT_SERVICE_URL:http://localhost:8091}
           predicates:
             - Path=/api/admin/reports/**
           filters:
@@ -375,7 +375,7 @@ spring:
 
         # REPORT SERVICE — CUSTOMER reporting
         - id: report-service-customer
-          uri: ${REPORT_SERVICE_URL:http://localhost:8087}
+          uri: ${REPORT_SERVICE_URL:http://localhost:8091}
           predicates:
             - Path=/api/reports/**
           filters:
@@ -384,7 +384,7 @@ spring:
         # REPORT SERVICE — SUPPORT TICKETS (customers AND pharmacies report
         # software/experience issues to admin)
         - id: report-service-issues
-          uri: ${REPORT_SERVICE_URL:http://localhost:8087}
+          uri: ${REPORT_SERVICE_URL:http://localhost:8091}
           predicates:
             - Path=/api/issues/**
           filters:
@@ -392,7 +392,7 @@ spring:
 
         # REPORT SERVICE — PHARMACY view/respond
         - id: report-service-pharmacy
-          uri: ${REPORT_SERVICE_URL:http://localhost:8087}
+          uri: ${REPORT_SERVICE_URL:http://localhost:8091}
           predicates:
             - Path=/api/pharmacy/reports/**
           filters:

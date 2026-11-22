@@ -215,7 +215,7 @@ services:
     networks:
       - medicine-net
 
-  # ------------------------------------------------------- report :8087
+  # ------------------------------------------------------- report :8091
   report-service:
     build:
       context: ./Report-service
@@ -228,7 +228,7 @@ services:
       AUTH_SERVICE_URL: http://auth-service:8081
       NOTIFICATION_SERVICE_URL: http://notification-service:8086
     ports:
-      - "8087:8087"
+      - "8091:8091"
     depends_on:
       postgres:
         condition: service_healthy
@@ -237,7 +237,7 @@ services:
       notification-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8087/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8091/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -327,7 +327,7 @@ services:
       SEARCH_SERVICE_URL: http://search-service:8083
       PRESCRIPTION_SERVICE_URL: http://prescription-service:8084
       NOTIFICATION_SERVICE_URL: http://notification-service:8086
-      REPORT_SERVICE_URL: http://report-service:8087
+      REPORT_SERVICE_URL: http://report-service:8091
       PAYMENT_SERVICE_URL: http://payment-service:8088
       SALES_SERVICE_URL: http://sales-service:8089
     ports:
